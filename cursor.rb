@@ -1,6 +1,7 @@
 require "io/console"
 require_relative 'board'
 require_relative 'display'
+require 'byebug'
 KEYMAP = {
   " " => :space,
   "h" => :left,
@@ -33,11 +34,14 @@ MOVES = {
 
 class Cursor
 
-  attr_reader :cursor_pos, :board
+  attr_accessor :cursor_pos, :board, :selected, :first, :second
 
   def initialize(cursor_pos, board)
     @cursor_pos = cursor_pos
     @board = board
+    @selected = false
+    @first = nil
+    @second = nil
   end
 
   def get_input
@@ -45,7 +49,11 @@ class Cursor
     handle_key(key)
   end
 
-  private
+  def toggle_selected
+      @selected = (!@selected)
+  end
+
+
 
   def read_char
     STDIN.echo = false # stops the console from printing return values
@@ -76,10 +84,20 @@ class Cursor
     return input
   end
 
+
+
   def handle_key(key)
     case key
     when :return, :space
-      @cursor_pos
+
+      toggle_selected
+      if @selected == true
+        @first = @cursor_pos
+      else
+        @second = @cursor_pos
+        p " I  AM HERE "
+      end
+
     when :left, :right, :up, :down
       update_pos(MOVES[key])
       nil
@@ -89,13 +107,10 @@ class Cursor
   end
 
   def update_pos(diff)
-    # if in_bounds?(diff)
-    #   @cursor_pos[0] -= diff[0]
-    #   @cursor_pos[1] -= diff[1]
-    # else
     new_pos = [cursor_pos[0] + diff[0],cursor_pos[1] + diff[1]]
-    @cursor_pos = new_pos if board.in_bounds?(new_pos)
-  
+    if @board.in_bounds?(new_pos)
+      @cursor_pos = new_pos
+    end
   end
 
 
